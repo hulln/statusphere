@@ -1,0 +1,176 @@
+{
+  "title": "Dnevni Izzivi - Slovenija",
+  "description": "Vsakodnevni izzivi in vprašanja za razmišljanje",
+  "prompts": {
+    "1-1": {
+      "date": "1. januar",
+      "prompt": "Kaj si želiš doseci v novem letu?",
+      "category": "cilji"
+    },
+    "1-2": {
+      "date": "2. januar", 
+      "prompt": "Opiši svoj najljubši zimski spomin.",
+      "category": "spomini"
+    },
+    "1-3": {
+      "date": "3. januar",
+      "prompt": "Kaj te danes navdihuje?",
+      "category": "navdih"
+    },
+    "1-4": {
+      "date": "4. januar",
+      "prompt": "Katero knjigo bi priporočil prijatelju?",
+      "category": "kultura"
+    },
+    "1-5": {
+      "date": "5. januar",
+      "prompt": "Opiši svoj idealen dan.",
+      "category": "sanje"
+    },
+    "1-6": {
+      "date": "6. januar",
+      "prompt": "Za kaj si danes hvaležen?",
+      "category": "hvaležnost"
+    },
+    "1-7": {
+      "date": "7. januar",
+      "prompt": "Katero slovensko tradicijo najraje praznuješ?",
+      "category": "tradicija"
+    },
+    "1-8": {
+      "date": "8. januar",
+      "prompt": "Kaj te je danes nasmejalo?",
+      "category": "veselje"
+    },
+    "1-9": {
+      "date": "9. januar",
+      "prompt": "Opiši svoj najljubši kotiček v Sloveniji.",
+      "category": "kraji"
+    },
+    "1-10": {
+      "date": "10. januar",
+      "prompt": "Katero novo spretnost bi se rad naučil?",
+      "category": "učenje"
+    },
+    "1-11": {
+      "date": "11. januar",
+      "prompt": "Kaj pomeni domovje zate?",
+      "category": "dom"
+    },
+    "1-12": {
+      "date": "12. januar",
+      "prompt": "Opiši svoj najljubši okus iz otroštva.",
+      "category": "okusi"
+    },
+    "1-13": {
+      "date": "13. januar",
+      "prompt": "Katero pesem te vedno razveseli?",
+      "category": "glasba"
+    },
+    "1-14": {
+      "date": "14. januar",
+      "prompt": "Kaj bi rad povedal svojemu mlajšemu jazu?",
+      "category": "modrost"
+    },
+    "1-15": {
+      "date": "15. januar",
+      "prompt": "Opiši svojo najljubšo slovensko besedo.",
+      "category": "jezik"
+    },
+    "1-16": {
+      "date": "16. januar",
+      "prompt": "Kaj te danes motivira?",
+      "category": "motivacija"
+    },
+    "1-17": {
+      "date": "17. januar",
+      "prompt": "Katero darilo si najraje prejel ali dal?",
+      "category": "darila"
+    },
+    "1-18": {
+      "date": "18. januar",
+      "prompt": "Opiši svoj najljubši vonj.",
+      "category": "čuti"
+    },
+    "1-19": {
+      "date": "19. januar",
+      "prompt": "Katero življenjsko lekcijo si se nedavno naučil?",
+      "category": "izkušnje"
+    },
+    "1-20": {
+      "date": "20. januar",
+      "prompt": "Kaj počneš, ko potrebuješ mir?",
+      "category": "sprostitev"
+    },
+    "1-21": {
+      "date": "21. januar",
+      "prompt": "Opiši svoj najljubši letni čas in zakaj.",
+      "category": "narava"
+    },
+    "1-22": {
+      "date": "22. januar",
+      "prompt": "Katero slovenska jed te spomni na dom?",
+      "category": "hrana"
+    },
+    "1-23": {
+      "date": "23. januar",
+      "prompt": "Kaj bi rad spremenil na svetu?",
+      "category": "spremembe"
+    },
+    "1-24": {
+      "date": "24. januar",
+      "prompt": "Opiši trenutek, ko si bil posebno ponosen nase.",
+      "category": "dosežki"
+    },
+    "1-25": {
+      "date": "25. januar",
+      "prompt": "Katero slovensko mesto bi rad obiskal?",
+      "category": "potovanja"
+    },
+    "1-26": {
+      "date": "26. januar",
+      "prompt": "Kaj te najbolj veseli v vsakdanjem življenju?",
+      "category": "vsakdanjost"
+    },
+    "1-27": {
+      "date": "27. januar",
+      "prompt": "Opiši svojega najljubšega literarnega junaka.",
+      "category": "literatura"
+    },
+    "1-28": {
+      "date": "28. januar",
+      "prompt": "Katero je tvoje najljubše slovensko pregovor ali rek?",
+      "category": "pregovori"
+    },
+    "1-29": {
+      "date": "29. januar",
+      "prompt": "Kaj te naredi srečnega?",
+      "category": "sreča"
+    },
+    "1-30": {
+      "date": "30. januar",
+      "prompt": "Opiši svoj najljubši zvok.",
+      "category": "zvoki"
+    },
+    "1-31": {
+      "date": "31. januar",
+      "prompt": "Kakšen nasvet bi dal nekomu, ki se seli v Slovenijo?",
+      "category": "nasveti"
+    },
+    "2-1": {
+      "date": "1. februar",
+      "prompt": "Katero je tvoje najljubše slovensko narečje ali beseda?",
+      "category": "jezik"
+    },
+    "2-2": {
+      "date": "2. februar",
+      "prompt": "Opiši svoj najljubši zimski šport ali aktivnost.",
+      "category": "šport"
+    },
+    "2-3": {
+      "date": "3. februar",
+      "prompt": "Kaj te najbolj navdušuje pri slovenski kulturi?",
+      "category": "kultura"
+    }
+  }
+}

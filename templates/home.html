@@ -1,254 +1,418 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div id="root">
-    <div class="error"></div>
-    <div id="header">
-        <h1>Serverless Statusphere</h1>
-        <p>Set your status on the Atmosphere.</p>
-    </div>
+<main id="root">
+    <!-- Error notification area -->
+    <div class="error" role="alert" aria-live="polite"></div>
+    
+    <!-- Hero header section -->
+    <header id="header">
+        <h1>Dnevni Izzivi</h1>
+        <p>Vsak dan nova misel, vsak dan novo navdihovanje. Deli svoje asociacije in misli s skupnostjo.</p>
+    </header>
+    
+    <!-- Main content container -->
     <div class="container">
-        <div class="card">
+        <!-- Authentication section -->
+        <section class="card" aria-label="User authentication">
             {% if let Some(Profile {did, display_name}) = profile %}
-            <form action="/logout" method="get" class="session-form">
+            <div class="session-form">
                 <div>
-                    Hi,
+                    👋 Živjo,
                     {% if let Some(display_name) = display_name %}
                     <strong>{{display_name}}</strong>
                     {% else %}
-                    <strong>friend</strong>
-                    {% endif %}. What's
-                    your status today??
+                    <strong>prijatelj</strong>
+                    {% endif %}! Kaj te danes spomni na današnji izziv?
                 </div>
                 <div>
-                    <button type="submit">Log out</button>
+                    <form action="/logout" method="get">
+                        <button type="submit" class="button-secondary">Odjavi se</button>
+                    </form>
                 </div>
-            </form>
+            </div>
             {% else %}
             <div class="session-form">
-                <form action="/login" method="post" class="login-form">
-                    <p>@</p>
-                    <input
-                        type="text"
-                        name="handle"
-                        placeholder="Enter your handle (eg alice.bsky.social)"
-                        required
-                    />
-                    <button type="submit">Log in</button>
-                </form>
+                <div style="flex: 1;">
+                    <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Dobrodošli v Dnevne Izzive</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">Prijavite se za sodelovanje</p>
+                    <form action="/login" method="post" class="login-form">
+                        <p>@</p>
+                        <input
+                            type="text"
+                            name="handle"
+                            placeholder="Vnesite vaš Bluesky naslov (npr. ana.bsky.social)"
+                            required
+                            aria-label="Vaš Bluesky naslov"
+                        />
+                        <button type="submit">Prijavi se</button>
+                    </form>
+                </div>
             </div>
             {% endif %}
+        </section>
 
+        <!-- Daily Prompt Section -->
+        <section class="daily-prompt-section" aria-label="Današnji izziv">
+            <div class="prompt-card">
+                <div class="prompt-header">
+                    <span class="prompt-date" id="current-date">7. oktober 2025</span>
+                    <span class="prompt-category" id="prompt-category">razmišljanje</span>
+                </div>
+                <h2 class="prompt-question" id="prompt-question">Kaj te danes navdihuje?</h2>
+                <p class="prompt-description">Deli svojo misel, spomin ali asociacijo na današnji izziv.</p>
+            </div>
+        </section>
 
+        <!-- Response Section -->
+        <section aria-label="Vaš odgovor">
+            <form id="response-form" class="response-form">
+                <div class="response-input-wrapper">
+                    <textarea 
+                        id="user-response"
+                        name="response"
+                        placeholder="Deli svojo misel, asociacijo ali spomin..."
+                        maxlength="500"
+                        rows="3"
+                        required
+                        aria-label="Vaš odgovor na današnji izziv"></textarea>
+                    <div class="response-actions">
+                        <span class="character-count">0/500</span>
+                        <button type="submit" class="share-button" disabled>
+                            <span>✨</span>
+                            <span>Deli Misel</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <!-- Responses timeline section -->
+        <section aria-label="Odgovori skupnosti">
+            <div class="responses-header">
+                <h3>Današnji odgovori</h3>
+                <p>Oglejte si, kako drugi odgovarjajo na današnji izziv</p>
+            </div>
+            <div id="responses-container" role="feed" aria-label="Seznam odgovorov">
+                <!-- Responses will be loaded here dynamically -->
+            </div>
+        </section>
+        
+        <!-- Call to action for non-authenticated users -->
+        {% if profile.is_none() %}
+        <div class="signup-cta">
+            <h3>Pridružite se skupnosti</h3>
+            <p>Prijavite se z vašim Bluesky računom in začnite deliti svoje misli na dnevne izzive.</p>
         </div>
-        <form id= "status-form" class="status-options">
-            {% for status in status_options %}
-            <!-- TODO: update the selected element here on form submit -->
-            <button
-                    class="{% if let Some(my_status) = my_status.as_ref() %} {%if &my_status.status == status %} status-option selected {% else %} status-option {% endif %} {% else %} status-option  {%endif%} "
-                    name="status" value="{{status}}">
-                {{status}}
-            </button>
-
-            {% endfor %}
-        </form.status>
-        <div id="statuscontainer">
-        </div>
+        {% endif %}
     </div>
-</div>
-{%endblock content%}
+</main>
+{% endblock content %}
 
 {%block js%}
 <!-- Client-side JavaScript code for the app. -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+
+<!-- Template data injection -->
+<script type="application/json" id="app-data">
+{
+    "initialResponses": {{ self.recent_statuses_json()|safe }},
+    "userDid": {% if let Some(Profile {did, display_name}) = profile %}"{{did.to_string()}}"{% else %}null{% endif %}
+}
+</script>
+
 <script type="text/javascript">
-// Initial statuses data
-const initialStatuses = {{ self.recent_statuses_json()|safe }};
+// Parse template data
+const appData = JSON.parse(document.getElementById('app-data').textContent);
+const initialResponses = appData.initialResponses;
+const userDid = appData.userDid;
 
 let currentWebSocket = null;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 10;
-const INITIAL_RECONNECT_DELAY = 1000; // 1 second
-
-// TODO: use to update hightlighted status on event updating
-//       status for current user
-{% if let Some(Profile {did, display_name}) = profile %}
-const did = "{{did.to_string()}}";
-{% else %}
-const did = null;
-{% endif %}
-
+const INITIAL_RECONNECT_DELAY = 1000;
 let hostname = window.location.host;
+let dailyPrompts = null;
 
-// Function to render a status element
-function renderStatus(data) {
-    let id = data.uri.replaceAll("/", "_").replaceAll(":", "_").replaceAll(".", "_");
-    console.log("normalized id ::   " + id);
-
-    let statusWrapper = null;
-    let preexisting = $("#" + id);
-
-    let updating_existing = false;
-
-    if (preexisting.length == 0) {
-        statusWrapper = $('<div>', {
-            class: "status-line tooltip",
-            id: id
-        });
-    } else {
-        preexisting.empty();
-        statusWrapper = preexisting;
-        updating_existing = true;
-    }
-
-    let status = $('<div>', {
-        class: "status",
-        text: data.status
-    });
-
-    let desc = $('<div>', {
-        class: "desc",
-    });
-    let author = $('<a>', {
-        class: "author",
-        href: "https://bsky.app/profile/" + data.author_did,
-        text: data.handle ? data.handle : data.author_did
-    });
-    desc.append(author);
-    desc.append(document.createTextNode(" is feeling " + data.status));
-    let tooltip = $('<div>', { class: "tooltiptext"});
-    if (data.created_via_this_app) {
-        tooltip.append(document.createTextNode("[created via this app]"));
-    }
-    if (data.seen_on_jetstream) {
-        if (data.created_via_this_app) {
-            tooltip.append($('<br>'));
-        }
-        tooltip.append(document.createTextNode("[observed via jetstream ✅]"));
-    }
-
-    statusWrapper.append(status);
-    statusWrapper.append(desc);
-    statusWrapper.append(tooltip);
-
-    // Update selected status button if this is the current user's status
-    if (did && data.author_did === did) {
-        $('.status-option').removeClass('selected');
-        $('.status-option').each(function() {
-            if ($(this).text() === data.status) {
-                $(this).addClass('selected');
-            }
-        });
-    }
-
-    if (!updating_existing) {
-        $("#statuscontainer").prepend(statusWrapper);
+// Load daily prompts from JSON file
+async function loadDailyPrompts() {
+    try {
+        const response = await fetch('/prompts/slovenian-prompts.json');
+        dailyPrompts = await response.json();
+        updateTodaysPrompt();
+    } catch (error) {
+        console.error('Failed to load daily prompts:', error);
+        // Fallback prompt
+        updatePromptDisplay('Kaj te danes navdihuje?', 'razmišljanje', getCurrentDateString());
     }
 }
 
-// Initialize status container with initial data
-$(document).ready(function() {
-    // Render initial statuses in reverse order so newest appears at top
-    initialStatuses.reverse().forEach(function(status) {
-        renderStatus(status);
-    });
-});
+// Get current date in M-D format for prompt lookup
+function getCurrentDateKey() {
+    const now = new Date();
+    return `${now.getMonth() + 1}-${now.getDate()}`;
+}
 
-$('#status-form').on('submit',function(e){
+// Get formatted date string in Slovenian
+function getCurrentDateString() {
+    const now = new Date();
+    const months = [
+        'januar', 'februar', 'marec', 'april', 'maj', 'junij',
+        'julij', 'avgust', 'september', 'oktober', 'november', 'december'
+    ];
+    return `${now.getDate()}. ${months[now.getMonth()]} ${now.getFullYear()}`;
+}
+
+// Update today's prompt display
+function updateTodaysPrompt() {
+    if (!dailyPrompts) return;
+    
+    const todayKey = getCurrentDateKey();
+    const todayPrompt = dailyPrompts.prompts[todayKey];
+    
+    if (todayPrompt) {
+        updatePromptDisplay(todayPrompt.prompt, todayPrompt.category, todayPrompt.date);
+    } else {
+        // Fallback for days without specific prompts
+        updatePromptDisplay('Deli svojo misel za današnji dan.', 'splošno', getCurrentDateString());
+    }
+}
+
+// Update the prompt display elements
+function updatePromptDisplay(question, category, date) {
+    $('#prompt-question').text(question);
+    $('#prompt-category').text(category);
+    $('#current-date').text(date);
+}
+
+// Handle form submission
+$('#response-form').on('submit', function(e) {
     e.preventDefault();
-    let submitter = e.originalEvent.submitter;
-    console.log("event data");
-    console.log(submitter);
-
-    let toSend = { "status": submitter.innerText };
-
-    // Update button selection immediately for better UX
-    $('.status-option').removeClass('selected');
-    $(submitter).addClass('selected');
-
+    
+    const responseText = $('#user-response').val().trim();
+    
+    if (!responseText) {
+        showError('Prosim, vnesite vaš odgovor.');
+        return;
+    }
+    
+    const todayKey = getCurrentDateKey();
+    const promptData = dailyPrompts?.prompts[todayKey];
+    
+    let toSend = {
+        "response": responseText,
+        "promptKey": todayKey,
+        "promptText": promptData?.prompt || "Dnevni izziv",
+        "date": getCurrentDateString()
+    };
+    
+    // Disable button during submission
+    $('.share-button').prop('disabled', true).html('<span>⏳</span><span>Objavljanje...</span>');
+    
     $.ajax({
-        type     : "POST",
-        cache    : false,
-        url      : "/status",
-        data     : JSON.stringify(toSend),
+        type: "POST",
+        cache: false,
+        url: "/status", // Keep using existing endpoint for now
+        data: JSON.stringify(toSend),
         contentType: "application/json; charset=utf-8",
-        dataType : "json",
-        success  : function(data) {
-            console.log("onsubmit success", data);
-            // Immediately render the status in the UI
-            renderStatus(data);
+        dataType: "json",
+        success: function(data) {
+            console.log("Response submitted successfully", data);
+            renderResponse(data);
+            $('#user-response').val('').trigger('input');
+            $('.share-button').prop('disabled', false).html('<span>✨</span><span>Deli Misel</span>');
         },
         error: function(xhr, status, error) {
-            console.error("Status update failed:", error);
-            // Revert button selection on error
-            $('.status-option').removeClass('selected');
-            // TODO: Re-select the previous status if known
+            console.error("Response submission failed:", error);
+            showError("Napaka pri objavljanju. Prosim, poskusite znova.");
+            $('.share-button').prop('disabled', false).html('<span>✨</span><span>Deli Misel</span>');
+        }
+    });
+});
+
+// Render a response in the timeline
+function renderResponse(data) {
+    const responseId = `response-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const responseItem = $('<div>', {
+        class: "response-item",
+        id: responseId
+    });
+    
+    // Create avatar with first letter of author's name
+    const authorName = data.handle || data.author_did || 'Anonimen';
+    const authorInitial = authorName.charAt(0).toUpperCase();
+    const avatar = $('<div>', {
+        class: "response-avatar",
+        text: authorInitial
+    });
+    
+    // Create content section
+    const content = $('<div>', { class: "response-content" });
+    
+    const author = $('<div>', {
+        class: "response-author",
+        text: data.handle || data.author_did || 'Anonimen uporabnik'
+    });
+    
+    const responseText = $('<div>', {
+        class: "response-text",
+        text: data.response || data.message || data.status || "Ni besedila"
+    });
+    
+    const meta = $('<div>', { class: "response-meta" });
+    const time = $('<span>', {
+        class: "response-time",
+        text: formatTimeAgo(data.created_at || new Date().toISOString())
+    });
+    
+    const promptRef = $('<span>', {
+        class: "response-prompt-ref",
+        text: `Odgovor na: ${data.promptText || dailyPrompts?.prompts[getCurrentDateKey()]?.prompt || 'Današnji izziv'}`
+    });
+    
+    meta.append(time);
+    meta.append(promptRef);
+    
+    content.append(author);
+    content.append(responseText);
+    content.append(meta);
+    
+    responseItem.append(avatar);
+    responseItem.append(content);
+    
+    // Add to timeline with animation
+    $("#responses-container").prepend(responseItem);
+    responseItem.hide().fadeIn(300);
+}
+
+// Character counting for response input
+$(document).on('input', '#user-response', function() {
+    const text = $(this).val();
+    const length = text.length;
+    const maxLength = 500;
+    
+    const counter = $('.character-count');
+    counter.text(`${length}/${maxLength}`);
+    
+    // Update counter styling
+    counter.removeClass('warning error');
+    if (length > maxLength * 0.9) {
+        counter.addClass('error');
+    } else if (length > maxLength * 0.8) {
+        counter.addClass('warning');
+    }
+    
+    // Auto-resize textarea
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+    
+    // Enable/disable submit button
+    $('.share-button').prop('disabled', length === 0 || length > maxLength);
+});
+
+// Helper function to format timestamps
+function formatTimeAgo(dateString) {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'sedaj';
+    if (diffMins < 60) return `${diffMins}min`;
+    if (diffHours < 24) return `${diffHours}h`;
+    if (diffDays < 7) return `${diffDays}d`;
+    return date.toLocaleDateString('sl-SI');
+}
+
+// Function to show error messages
+function showError(message) {
+    const errorDiv = $('.error');
+    errorDiv.text(message).addClass('visible');
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        errorDiv.removeClass('visible');
+    }, 5000);
+}
+
+// WebSocket connection management
+function join() {
+    const wss = document.location.protocol === "http:" ? "ws://" : "wss://";
+    let ws = new WebSocket(wss + hostname + "/websocket");
+    let rejoined = false;
+
+    let rejoin = async () => {
+        if (!rejoined) {
+            rejoined = true;
+            currentWebSocket = null;
+
+            if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+                console.log("Max reconnection attempts reached.");
+                showError("Povezava prekinjena. Osvežite stran za ponovno povezavo.");
+                return;
+            }
+
+            const delay = Math.min(INITIAL_RECONNECT_DELAY * Math.pow(2, reconnectAttempts), 30000);
+            reconnectAttempts++;
+            
+            console.log(`Poskus ponovne povezave ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} čez ${delay}ms`);
+            
+            await new Promise(resolve => setTimeout(resolve, delay));
+            join();
+        }
+    }
+
+    ws.addEventListener("open", event => {
+        currentWebSocket = ws;
+        reconnectAttempts = 0;
+        console.log("WebSocket connected successfully");
+    });
+
+    ws.addEventListener("message", event => {
+        let data = JSON.parse(event.data);
+        console.log("websocket msg data: ", data);
+
+        if (data.error) {
+            console.log("error from backend", data);
+            showError(data.error);
+        } else {
+            console.log("response from backend", data);
+            renderResponse(data);
         }
     });
 
-});
-
-function join() {
-  // If we are running via wrangler dev, use ws:
-  const wss = document.location.protocol === "http:" ? "ws://" : "wss://";
-  let ws = new WebSocket(wss + hostname + "/websocket");
-  let rejoined = false;
-  let startTime = Date.now();
-
-  let rejoin = async () => {
-    if (!rejoined) {
-      rejoined = true;
-      currentWebSocket = null;
-
-      // Check if we've exceeded max reconnect attempts
-      if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-        console.log("Max reconnection attempts reached. Stopping reconnection attempts.");
-        return;
-      }
-
-      // Calculate exponential backoff delay
-      const delay = Math.min(INITIAL_RECONNECT_DELAY * Math.pow(2, reconnectAttempts), 30000); // Max 30 seconds
-      reconnectAttempts++;
-      
-      console.log(`Reconnection attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} in ${delay}ms`);
-      
-      // Wait for the calculated delay
-      await new Promise(resolve => setTimeout(resolve, delay));
-
-      // OK, reconnect now!
-      join();
-    }
-  }
-
-  ws.addEventListener("open", event => {
-    currentWebSocket = ws;
-    console.log("WebSocket connected successfully");
-  });
-
-  ws.addEventListener("message", event => {
-    console.log("websocket msg raw: " + JSON.stringify(event))
-    let data = JSON.parse(event.data);
-    console.log("websocket msg data: " + JSON.stringify(data))
-
-    if (data.error) {
-      console.log("error from backend", data)
-    } else {
-      console.log("status from backend", data)
-      renderStatus(data);
-    }
-  });
-
-  ws.addEventListener("close", event => {
-    console.log("WebSocket closed, reconnecting:", event.code, event.reason);
-    rejoin();
-  });
-  ws.addEventListener("error", event => {
-    console.log("WebSocket error, reconnecting:", event);
-    rejoin();
-  });
+    ws.addEventListener("close", event => {
+        console.log("WebSocket closed, reconnecting:", event.code, event.reason);
+        rejoin();
+    });
+    
+    ws.addEventListener("error", event => {
+        console.log("WebSocket error, reconnecting:", event);
+        rejoin();
+    });
 }
 
-
-join();
+// Initialize everything when page loads
+$(document).ready(function() {
+    // Load daily prompts
+    loadDailyPrompts();
+    
+    // Render initial responses if they exist
+    if (initialResponses && initialResponses.length > 0) {
+        initialResponses.reverse().forEach(function(response) {
+            renderResponse(response);
+        });
+    }
+    
+    // Set up character counter for textarea
+    $('#user-response').trigger('input');
+    
+    // Start WebSocket connection
+    join();
+    
+    console.log("Dnevni Izzivi aplikacija inicializirana");
+});
 </script>
 {%endblock js%}
